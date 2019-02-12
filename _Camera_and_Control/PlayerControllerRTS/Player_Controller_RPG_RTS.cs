@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/*
+*   2019.02.12  in rts mode turn on Astar pathfinding AI, turn on in rpg mode.
+*/
 namespace GeorgeScript
 {
     public class Player_Controller_RPG_RTS : Player_Controller_RPG
@@ -9,17 +12,49 @@ namespace GeorgeScript
         public GameObject Select_Circle_Prefab;
         private bool mouseAreaSelec = false;    //	mouse area selecting flag
         private Vector3 curMousPos;
+
+        protected bool aiOn = false;
+        protected Pathfinding.RichAI pathRichAI;
+        protected Pathfinding.AIPath pathAIPath;
+        protected Pathfinding.AILerp pathAILerp;
+
+        public override void Start()
+        {
+            base.Start();
+
+            pathRichAI = GetComponent<Pathfinding.RichAI>();
+            pathAIPath = GetComponent<Pathfinding.AIPath>();
+            pathAILerp = GetComponent<Pathfinding.AILerp>();
+            aiOn = false;
+            if (pathRichAI != null) pathRichAI.enabled = false;
+            else if (pathAIPath != null) pathAIPath.enabled = false;
+            else if (pathAILerp != null) pathAILerp.enabled = false;
+        }
         public override void FixedUpdate()
         {
             base.FixedUpdate();
             bool mousLefButt = Input.GetMouseButton(0);
-
             if (!camFollowFlag)
             {   //	if not follow then move camera center point directilly, keyboard now control camera
+                // 2019.02.12 is in rts mode then turn on Astart pathfinding AI
+                if (!aiOn)
+                {
+                    aiOn = true;
+                    if (pathRichAI != null) pathRichAI.enabled = true;
+                    else if (pathAIPath != null) pathAIPath.enabled = true;
+                    else if (pathAILerp != null) pathAILerp.enabled = true;
+                }
 
                 RTS_Point_Selec(mousLefButt);
 
                 RTS_Area_Selec(mousLefButt);
+            }
+            else if (camFollowFlag && aiOn)
+            {// if return to rpg mode then run below code once
+                aiOn = false;
+                if (pathRichAI != null) pathRichAI.enabled = false;
+                else if (pathAIPath != null) pathAIPath.enabled = false;
+                else if (pathAILerp != null) pathAILerp.enabled = false;
             }
 
         }

@@ -181,6 +181,12 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!1 &262589651 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1260424678473100, guid: 0f19a09693707054db8402f0c49e9b17,
+    type: 3}
+  m_PrefabInstance: {fileID: 955214178}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &527937622
 GameObject:
   m_ObjectHideFlags: 0
@@ -457,7 +463,7 @@ PrefabInstance:
         type: 3}
       propertyPath: Player_Obj
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2016610505}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0f19a09693707054db8402f0c49e9b17, type: 3}
 --- !u!1 &1308270202
@@ -864,7 +870,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerMoveBehivior: 0
   PlayerTurnBehivior: 0
-  Cam_Center_Point: {fileID: 0}
+  Cam_Center_Point: {fileID: 262589651}
   Edge_Boundary: 1
   Player_Normal_Speed: 1
   Player_Run_Speed: 2.5
@@ -875,7 +881,7 @@ MonoBehaviour:
   Turn_Player_by_Keyboard: 0
   Turn_Player_by_Mouse_Point: 0
   Move_Or_Turn_Player_According_To_Camera: 1
-  Select_Circle_Prefab: {fileID: 0}
+  Select_Circle_Prefab: {fileID: 166266, guid: db4d11366940bbc418c3e1d0547101e0, type: 3}
 --- !u!54 &2016610507
 Rigidbody:
   m_ObjectHideFlags: 0
