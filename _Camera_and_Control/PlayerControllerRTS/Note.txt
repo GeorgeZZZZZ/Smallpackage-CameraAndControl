@@ -1,0 +1,5 @@
+This package need Assets shown below:
+	A* Pathfinding Project
+	Behavior Designer - Behavior Trees for Everyone
+	Behavior Designer - Movement Pack
+	Behavior Designer - Integrations - A* Pathfinding Integration
