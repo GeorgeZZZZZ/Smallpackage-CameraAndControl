@@ -25,7 +25,7 @@ public class Camera_Customer_Inspector : Editor {
         CFPB = serOBJ.FindProperty("CameraFollowPlayerBehavior");    //  find serializable enum
         CMTinRTS = serOBJ.FindProperty("CameraMovementTypes");    //  find serializable enum
         MCCTinRTS = serOBJ.FindProperty("MouseControlCamTypeseInRTSMode");    //  find serializable enum
-        playerOBJ = serOBJ.FindProperty("Player_Obj");
+        //playerOBJ = serOBJ.FindProperty("Player_Obj");
         xRoteOBJ = serOBJ.FindProperty("X_Rote_Cent");
         camOBJ = serOBJ.FindProperty("Cam_Obj");
     }
@@ -39,7 +39,7 @@ public class Camera_Customer_Inspector : Editor {
         //  General Settings---------------------------
         GUILayout.Space(10);
         EditorGUILayout.LabelField("General Settings", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(playerOBJ);
+        //EditorGUILayout.PropertyField(playerOBJ); // 2019.02.15 script auto search player controller no need to asign any more
         EditorGUILayout.PropertyField(xRoteOBJ);
         EditorGUILayout.PropertyField(camOBJ);
 

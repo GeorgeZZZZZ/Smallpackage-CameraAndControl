@@ -24,7 +24,7 @@ namespace GeorgeScript
             serOBJ = new SerializedObject(target);
             PMB = serOBJ.FindProperty("PlayerMoveBehivior");    //  find serializable enum
             PTB = serOBJ.FindProperty("PlayerTurnBehivior");
-            camOBJ = serOBJ.FindProperty("Cam_Center_Point");
+            //camOBJ = serOBJ.FindProperty("Cam_Center_Point"); // 19.02.15 auto search for cam obj, not really need to show this any more
         }
 
         public override void OnInspectorGUI()
@@ -34,7 +34,7 @@ namespace GeorgeScript
             //  General Settings---------------------------
             GUILayout.Space(10);
             EditorGUILayout.LabelField("General Settings", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(camOBJ);
+            //EditorGUILayout.PropertyField(camOBJ);
 
             CPC.Edge_Boundary = EditorGUILayout.IntField("Edge_Boundary", CPC.Edge_Boundary);
             CPC.Player_Normal_Speed = EditorGUILayout.FloatField("Player_Normal_Speed", CPC.Player_Normal_Speed);

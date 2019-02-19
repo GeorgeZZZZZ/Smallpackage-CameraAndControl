@@ -8,6 +8,9 @@ using System.Text;
 //	0.7.8
 // 2019.01.08 change animation control from bool to triger
 // 2019.02.07 extract from Player_Controller_RTS_RPG_AstarPathfing_Project.cs to a only rpg player Controller
+// 2019.02.15
+//  add instance for fast use for other script
+//  change how camera obj been asign
 namespace GeorgeScript
 {
     public enum Player_Move_Behivior
@@ -33,8 +36,8 @@ namespace GeorgeScript
         public Player_Move_Behivior PlayerMoveBehivior; //  declar serializable enum for customer inspector script to look for
         public Player_Turn_Behivior PlayerTurnBehivior;
 
-        //
         public GameObject Cam_Center_Point;
+        protected Camera_Controller cc;
 
         public int Edge_Boundary = 1;   //	valuable use for detect limit movement which mouse move near screen edge, unit in pixel 
         public float Player_Normal_Speed = 1f;
@@ -50,7 +53,7 @@ namespace GeorgeScript
         public bool Move_Or_Turn_Player_According_To_Camera = false;    //	WASD control forward/ backward/ left shift or turn left by Camera behavior/ right shift or turn right by Camera behavior
         private bool characterMovingFlag = false;  //	flag is true if get input for character move
         public event Action<bool> CharacterMoveEvent;
-        protected Camera playerCam;
+        //protected Camera playerCam;
         private Vector3 moveCalculation;
         private Rigidbody playerRigidbody;
         private Animator anim;
@@ -69,6 +72,25 @@ namespace GeorgeScript
         private int layerMaskHeightAdjust;
         private float jumpTimer;
         private float timer = 1;
+
+        // 2019.02.15 add for faster call from other script
+        private static Player_Controller_RPG _instance;
+        public static Player_Controller_RPG Instance
+        {
+            get
+            {
+                if (_instance == null)
+                    Debug.LogError("No player controller script assign!!");
+
+                return _instance;
+            }
+        }
+
+        private void Awake()
+        {   // point static value to this script, works if there are only one script running in scene
+            if (_instance == null)
+                _instance = this;
+        }
         // Use this for initialization
         public virtual void Start()
         {
@@ -78,7 +100,9 @@ namespace GeorgeScript
                                                                                                                             //playerRigidbody.drag = Mathf.Infinity;
             playerRigidbody.angularDrag = Mathf.Infinity;   //prevant character keep turn not stop after finish rotation
             anim = GetComponent<Animator>();
-            playerCam = Cam_Center_Point.GetComponent<Camera_Controller>().Cam_Obj.GetComponent<Camera>();
+            cc = Camera_Controller.Instance;
+            if (Cam_Center_Point == null)Cam_Center_Point = cc.gameObject;
+            //playerCam = Cam_Center_Point.GetComponent<Camera_Controller>().Cam_Obj.GetComponent<Camera>();
 
             newYAng = transform.eulerAngles.y;  //	initialize value in first run
             layerMaskFloor = LayerMask.GetMask("Floor");
@@ -316,7 +340,7 @@ namespace GeorgeScript
 
         //	Turning Player by Mouse Pointing
         void TPbMP()
-        {
+        {/* 
             Quaternion roteTo;
             Vector3 mousHitPos;
 
@@ -324,7 +348,7 @@ namespace GeorgeScript
             {
                 playerRigidbody.MoveRotation(roteTo);
             }
-
+*/
         }
 
         //	Animation management

@@ -15,6 +15,7 @@ using GeorgeScript;
  *  add mouse weel counter when when cam distance hit RTS cam distance
  *  - 2019.02.07 change component requirement script to a simple player controller
  *  - 2019.02.10 take out useless calculation to fixed the problem of move mouse a little bit but sudden big cam move
+ *  - 2019.02.15 change the way to asign player_controller
  */
 public enum Mouse_Control_Cam_Types_In_RPG_Mode
 {
@@ -62,6 +63,7 @@ public class Camera_Controller : MonoBehaviour, ILowLevelCameraController
     //
     //[Header("Obj for camera to follow")]
     public GameObject Player_Obj;
+    protected Player_Controller_RPG playerController; //  2019.02.15
     //[Header("Camera Parts")]
     public GameObject X_Rote_Cent;
     public GameObject Cam_Obj;
@@ -191,6 +193,9 @@ public class Camera_Controller : MonoBehaviour, ILowLevelCameraController
         PlayerCam = Cam_Obj.GetComponent<Camera>();
         XRoteCent = X_Rote_Cent.GetComponent<Transform>();
         Cam_Rotate_Distance_Factor = (Max_Cam_Distance - Min_Cam_Distance) / Max_X_Rotation_Angle;
+        playerController = Player_Controller_RPG.Instance;
+        if(Player_Obj == null && playerController != null)Player_Obj = playerController.gameObject;
+
         //	give initial angle keep same in sence
         xRotation = XRoteCent.rotation.eulerAngles.x;
         if (Player_Obj == null) yRotation = transform.rotation.eulerAngles.y;

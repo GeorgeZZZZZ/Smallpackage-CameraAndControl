@@ -3,3 +3,4 @@ This package need Assets shown below:
 	Behavior Designer - Behavior Trees for Everyone
 	Behavior Designer - Movement Pack
 	Behavior Designer - Integrations - A* Pathfinding Integration
+	_Customize_BehaviorTask

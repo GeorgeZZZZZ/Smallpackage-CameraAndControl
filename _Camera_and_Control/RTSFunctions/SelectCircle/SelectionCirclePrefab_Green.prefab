@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 422170}
   - component: {fileID: 11939280}
   m_Layer: 0
-  m_Name: SelectionCirclePrefab
+  m_Name: SelectionCirclePrefab_Green
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -45,8 +45,8 @@ Projector:
   m_FieldOfView: 60
   m_AspectRatio: 1
   m_Orthographic: 1
-  m_OrthographicSize: 1.5
-  m_Material: {fileID: 2100000, guid: c635692e6f2b73e4cb51502e5bdf706f, type: 2}
+  m_OrthographicSize: 1
+  m_Material: {fileID: 2100000, guid: d146c1a59382a9f4190c49b1d02eec3a, type: 2}
   m_IgnoreLayers:
     serializedVersion: 2
     m_Bits: 0
