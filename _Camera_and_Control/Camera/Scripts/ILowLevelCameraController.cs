@@ -8,10 +8,13 @@ using System;
  *  two event from Camera_Controller
  */
 
-public interface ILowLevelCameraController
+namespace GeorgeScript
 {
-    //event Action<bool> RPG_Mode;
-    //event Action<bool> RTS_Mode;
+    public interface ILowLevelCameraController
+    {
+        //event Action<bool> RPG_Mode;
+        //event Action<bool> RTS_Mode;
 
-    event Action<Camera_Controller_Mode> Camera_Mode_Change_Event;
+        event Action<Camera_Controller_Mode> Camera_Mode_Change_Event;
+    }
 }

@@ -1,2 +1,0 @@
-To add this package:
-Need add key word "Rotate" in to Project Settings > Input
