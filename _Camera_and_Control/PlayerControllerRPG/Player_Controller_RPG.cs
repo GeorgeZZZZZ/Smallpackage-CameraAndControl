@@ -11,6 +11,7 @@ using System.Text;
 // 2019.02.15
 //  add instance for fast use for other script
 //  change how camera obj been asign
+// 2019.05.10 add recheck instance in start()
 namespace GeorgeScript
 {
     public enum Player_Move_Behivior
@@ -73,6 +74,9 @@ namespace GeorgeScript
         private float jumpTimer;
         private float timer = 1;
 
+        public bool turnOnAnimating = true; // some times may want to turn off animating to avoid error message 
+
+        private bool isThisScriptAsigned = false;
         // 2019.02.15 add for faster call from other script
         private static Player_Controller_RPG _instance;
         public static Player_Controller_RPG Instance
@@ -86,7 +90,7 @@ namespace GeorgeScript
             }
         }
 
-        private void Awake()
+        public virtual void Awake()
         {   // point static value to this script, works if there are only one script running in scene
             if (_instance == null)
                 _instance = this;
@@ -94,14 +98,18 @@ namespace GeorgeScript
         // Use this for initialization
         public virtual void Start()
         {
-
+            if (!isThisScriptAsigned)
+            {
+                isThisScriptAsigned = true;
+                _instance = this;
+            }
             playerRigidbody = GetComponent<Rigidbody>();
             playerRigidbody.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;      //freeze rigidbody's rotation to prevent fall down to floor
                                                                                                                             //playerRigidbody.drag = Mathf.Infinity;
             playerRigidbody.angularDrag = Mathf.Infinity;   //prevant character keep turn not stop after finish rotation
             anim = GetComponent<Animator>();
             cc = Camera_Controller.Instance;
-            if (Cam_Center_Point == null)Cam_Center_Point = cc.gameObject;
+            if (Cam_Center_Point == null) Cam_Center_Point = cc.gameObject;
             //playerCam = Cam_Center_Point.GetComponent<Camera_Controller>().Cam_Obj.GetComponent<Camera>();
 
             newYAng = transform.eulerAngles.y;  //	initialize value in first run
@@ -210,7 +218,7 @@ namespace GeorgeScript
                 }
             }
 
-            if (camFollowFlag)
+            if (camFollowFlag && turnOnAnimating)
             {
                 Animating(moveFBForAnimeRPG, moveLRForAnimeRPG, _jump);  //	Animation management
             }
@@ -220,14 +228,14 @@ namespace GeorgeScript
          * --- Functions
          ********************************/
         //	add acceleration to rigidbody
-        private void JumpCharacter()
+        public virtual void JumpCharacter()
         {
             playerRigidbody.AddForce(transform.up * Jump_Speed, ForceMode.Acceleration);
         }
 
         //	move or turn by keyboard according camera behavior, typical RPG control system
         //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-        private void MoTbKaCB(float FB, float LR, float movSP, float turnSP, float RD)
+        public virtual void MoTbKaCB(float FB, float LR, float movSP, float turnSP, float RD)
         {
             float tarYAng = Cam_Center_Point.transform.eulerAngles.y;
             float curYAng = transform.eulerAngles.y;
@@ -294,7 +302,7 @@ namespace GeorgeScript
 
         //	Move Player towards Character Facing
         //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-        void MPtCF(float FB, float LR, float SP, float RD)
+        public virtual void MPtCF(float FB, float LR, float SP, float RD)
         {
 
             //move basis on the character face on (character local axis x, y, z)
@@ -311,7 +319,7 @@ namespace GeorgeScript
 
         //	Move Player along world axis x, y, z
         //	FB: forward/backward, LR: Left/Right, SP: Speed, RD: retreatDivisor
-        void MPaW(float FB, float LR, float SP, float RD)
+        public virtual void MPaW(float FB, float LR, float SP, float RD)
         {
 
             moveCalculation.Set(LR, 0f, FB);        //package keyboard value into vector3 type for later calcuation
@@ -330,7 +338,7 @@ namespace GeorgeScript
 
         //	Turning Player by Keyboard Control
         //	LR: Left/Right, TS: Turn Speed
-        void TPbKC(float LR, float TS)
+        public virtual void TPbKC(float LR, float TS)
         {
             Vector3 playerToKeyboard = new Vector3(0f, LR * TS * Time.deltaTime, 0);    //Same if write: float playerToKeyboard = lr*TS*Time.deltaTime; 
             Quaternion tbkcRotation = Quaternion.Euler(playerToKeyboard);   //if use float then the code will be: Quaternion.Euler (0f, playerToKeyboard, 0f);
@@ -339,7 +347,7 @@ namespace GeorgeScript
         }
 
         //	Turning Player by Mouse Pointing
-        void TPbMP()
+        public virtual void TPbMP()
         {/* 
             Quaternion roteTo;
             Vector3 mousHitPos;
@@ -352,7 +360,7 @@ namespace GeorgeScript
         }
 
         //	Animation management
-        private void Animating(float FB, float LR, bool JP)
+        public virtual void Animating(float FB, float LR, bool JP)
         {
             // only keep execute if there are animation in animator
             if (!anim.hasBoundPlayables) return;
@@ -406,12 +414,12 @@ namespace GeorgeScript
         }
 
         //	force camera center stop follow player
-        private void RELEASE()
+        public virtual void RELEASE()
         {
             Cam_Center_Point.GetComponent<Camera_Controller>().followPlayerFlag = false;
         }
 
-        private void DEBUG()
+        public virtual void DEBUG()
         {
 
             //debug try disconnect camera follow

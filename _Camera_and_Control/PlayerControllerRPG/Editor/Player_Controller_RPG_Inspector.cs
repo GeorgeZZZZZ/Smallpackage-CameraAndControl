@@ -41,6 +41,7 @@ namespace GeorgeScript
             CPC.Player_Run_Speed = EditorGUILayout.FloatField("Player_Run_Speed", CPC.Player_Run_Speed);
             CPC.Player_Turnning_Speed = EditorGUILayout.FloatField("Player_Turnning_Speed", CPC.Player_Turnning_Speed);
             CPC.Jump_Speed = EditorGUILayout.FloatField("Jump_Speed", CPC.Jump_Speed);
+            CPC.turnOnAnimating = EditorGUILayout.Toggle("Turn On Animating", CPC.turnOnAnimating);
 
             //  Character move type Settings---------------------------
             GUILayout.Space(10);

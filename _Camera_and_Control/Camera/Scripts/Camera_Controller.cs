@@ -16,6 +16,8 @@ using GeorgeScript;
  *  - 2019.02.07 change component requirement script to a simple player controller
  *  - 2019.02.10 take out useless calculation to fixed the problem of move mouse a little bit but sudden big cam move
  *  - 2019.02.15 change the way to asign player_controller
+ *  - 2019.05.10 change all method to public virtual 
+ *                  add method to judge player script
  */
 namespace GeorgeScript
 {
@@ -65,8 +67,10 @@ namespace GeorgeScript
         //
         //[Header("Obj for camera to follow")]
         public GameObject Player_Obj;
-        protected Player_Controller_RPG playerController; //  2019.02.15
-                                                          //[Header("Camera Parts")]
+        //protected Player_Controller_RPG playerController; //  2019.02.15
+        protected Camera_Follow_Target followTar; //2019.05.12 use a separated script to identify which obj to follow, there for this cam controller can use with uRPG movement controller
+
+        //[Header("Camera Parts")]
         public GameObject X_Rote_Cent;
         public GameObject Cam_Obj;
 
@@ -183,20 +187,24 @@ namespace GeorgeScript
         private Player_Controller_RPG PlayerCR;
         public float camReturntime = 2f; // 2019.02.08 add a time for camera to return to where character facing in RPG mode if no mouse or keyboard input
 
+        public bool foundPlayer = false;
+        public float timer_2s = 2f;
+
+        public bool ExternalSetMouseRelease = false;
+        public bool ExternalFreezeCam = false;
+
         private void Awake()
         {
             if (_instance == null)
                 _instance = this;
         }
-
+        
         // Use this for initialization
-        void Start()
+        public virtual void Start()
         {
             PlayerCam = Cam_Obj.GetComponent<Camera>();
             XRoteCent = X_Rote_Cent.GetComponent<Transform>();
             Cam_Rotate_Distance_Factor = (Max_Cam_Distance - Min_Cam_Distance) / Max_X_Rotation_Angle;
-            playerController = Player_Controller_RPG.Instance;
-            if (Player_Obj == null && playerController != null) Player_Obj = playerController.gameObject;
 
             //	give initial angle keep same in sence
             xRotation = XRoteCent.rotation.eulerAngles.x;
@@ -205,27 +213,14 @@ namespace GeorgeScript
             camMaxDis = Max_Cam_Distance;
             camMinDis = Min_Cam_Distance;
 
-            //	fouce false going to RTS mode when Player_Obj is null
-            if (Player_Obj == null)
-                followPlayerFlag = followPlayerFlagInternal = false;
-
-            layerMaskPlayer = LayerMask.GetMask("Player");
-            layerMaskCharacterRagdoll = LayerMask.GetMask("CharacterRagdoll");
-            layerMaskHeightAdjust = LayerMask.GetMask("HeightAdjust");
+            Where_Is_Player();
             //camINITIALIZE ();
 
-            //	identify player character is moving or not by reading flag form control script
-            //  2019.02.07 change this script to a simple player controller
-            if (Player_Obj != null && Player_Obj.GetComponent("Player_Controller_RPG") != null)
-            {
-                //charaterIsMovingFlag = Player_Obj.GetComponent<GeorgeScript.Player_Controller_RPG>().characterMovingFlag;
-                PlayerCR = Player_Obj.GetComponent<Player_Controller_RPG>();
-                PlayerCR.CharacterMoveEvent += CharacterMoveEvent;
-            }
         }
 
-        void FixedUpdate()
+        public virtual void FixedUpdate()
         {
+            if (ExternalFreezeCam) return;
             if (!followPlayerFlagInternal)
             {    //  run in RTS mode
                  //	get physics input
@@ -260,8 +255,22 @@ namespace GeorgeScript
         }
 
         // Update is called once after every frame updated
-        void LateUpdate()
+        public virtual void LateUpdate()
         {
+            // 2019.05.12 hide mouse flag(control by camera movement type) as true and external set mouse(contorl by other script) as false to hide mouse cursor
+            if (lockandHideMousFlag && !ExternalSetMouseRelease)
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+
+            if (ExternalFreezeCam) return;
+
             float xMaxRote = Max_X_Rotation_Angle;
             float xMinRote = Min_X_Rotation_Angle;
             bool onlyMousCamFollow = false;
@@ -276,7 +285,7 @@ namespace GeorgeScript
             float rawMousMidTrc = Input.GetAxisRaw("Mouse ScrollWheel");    //	record mid mouse scroll wheel movement
 
             float smoMousMidTrc = SMO_MousTrack(rawMousMidTrc); //	smooth mouse scroll wheel value
-
+            
             //  manage camera different movement modes in RPG and RTS
             if (followPlayerFlagInternal)
             {   //	Only execuate in RPG mode, means camera follow player
@@ -370,17 +379,6 @@ namespace GeorgeScript
                 AutoHight();    //	auto change hight when camera mode get into RTS
             }
 
-            if (lockandHideMousFlag)
-            {
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
-            }
-            else
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-            }
-
             /*---------------
              * Angle limition
              ---------------*/
@@ -390,8 +388,15 @@ namespace GeorgeScript
             //---------------
 
             ROTATE(xRotation, yRotation, onlyMousCamFollow, completeCamFollow, classicCamFollow);   //	call function block for rotation
+
+            if (timer_2s > 0) timer_2s = timer_2s - Time.deltaTime;
+            else
+            {
+                timer_2s = 2f;
+                Where_Is_Player();
+            }
         }
-        void OnDestroy()
+        public virtual void OnDestroy()
         {
             if (PlayerCR != null) PlayerCR.CharacterMoveEvent -= CharacterMoveEvent;
         }
@@ -401,7 +406,7 @@ namespace GeorgeScript
          ********************************/
         //	Move Disconnect Camera center towards Camera Facing
         //	FB: forward/backward, LR: Left/Right, SP: Speed
-        void MDCtCF(float FB, float LR, float SP)
+        public virtual void MDCtCF(float FB, float LR, float SP)
         {
 
             transform.Translate(Vector3.forward * FB * SP * Time.deltaTime);
@@ -411,7 +416,7 @@ namespace GeorgeScript
 
         //	Move Disconnect Camera center along world axis x, y, z
         //	FB: forward/backward, LR: Left/Right, SP: Speed
-        void MDCaW(float FB, float LR, float SP)
+        public virtual void MDCaW(float FB, float LR, float SP)
         {
 
             transform.Translate(Vector3.forward * FB * SP * Time.deltaTime, Space.World);
@@ -421,7 +426,7 @@ namespace GeorgeScript
 
         //	Edge Boundary Movement Control
         //	out xMovOff: x Movement Offset, out yMovOff: y Movement Offset
-        private void Edge_Move_Control(out float xMovOff, out float zMovOff)
+        public virtual void Edge_Move_Control(out float xMovOff, out float zMovOff)
         {
             float mousXPos, mousYPos;
             float newXOff = 0f, newZOff = 0f;
@@ -454,7 +459,7 @@ namespace GeorgeScript
             zMovOff = newZOff;
         }
 
-        private void Get_Mous_Axis(out float mousX, out float mousY, out bool mousIsMoving)
+        public virtual void Get_Mous_Axis(out float mousX, out float mousY, out bool mousIsMoving)
         {
             mousX = Input.GetAxis("Mouse X") * Look_Sensitivity * Time.deltaTime;   //	record mouse movement on X axis
             mousY = Input.GetAxis("Mouse Y") * Look_Sensitivity * Time.deltaTime;   //	record mouse movement on Y axis
@@ -465,7 +470,7 @@ namespace GeorgeScript
         }
 
         //  read mouse movement and give number to global value
-        private void Mous_Turn_Cam_Control()
+        public virtual void Mous_Turn_Cam_Control()
         {
             if (inTransitMode) return;  // if in transit mode then stop mouse controll cam
             float mousX, mousY;
@@ -475,7 +480,7 @@ namespace GeorgeScript
         }
 
         //	get current mouse position on screen
-        private void MousPos(out float mousXPos, out float mousYPos)
+        public virtual void MousPos(out float mousXPos, out float mousYPos)
         {
             //	current mouse position on screen in pixels
             //	0 point is at left, down of game window
@@ -485,7 +490,7 @@ namespace GeorgeScript
 
         //	Edge Boundary Movement Control
         //	out xRotOff: x Rotation Offset, out yRotOff: y Rotation Offset
-        private void Edge_Turn_Cam_Control()
+        public virtual void Edge_Turn_Cam_Control()
         {
             if (inTransitMode) return;  // if in transit mode then stop mouse controll cam
             float mousXPos, mousYPos;
@@ -521,7 +526,7 @@ namespace GeorgeScript
 
         //	movement when follow player
         //	HF: Hight Offset
-        private void FOLLOW()
+        public virtual void FOLLOW()
         {
 
             Vector3 tempPos = new Vector3(Player_Obj.transform.position.x, Player_Obj.transform.position.y + Height_Offset, Player_Obj.transform.position.z);
@@ -529,7 +534,7 @@ namespace GeorgeScript
         }
 
         //	movement when not follow player
-        private void INDEPENDENT()
+        public virtual void INDEPENDENT()
         {
 
             //Vector3 temprPosOffset = new Vector3 (0f,0f,0f);
@@ -539,7 +544,7 @@ namespace GeorgeScript
 
         //	rotate center point angle
         //	xR: Mouse xRotation, yR: Mouse yRotation	
-        private void ROTATE(float xR, float yR, bool onlyFollowMous, bool completeFollow, bool classicRPG)
+        public virtual void ROTATE(float xR, float yR, bool onlyFollowMous, bool completeFollow, bool classicRPG)
         {
             float yAng = 0f;
             //	must use Mathf.SmoothDampAngle otherwise camera will spine 360 when rotate player angle pass 0
@@ -617,7 +622,7 @@ namespace GeorgeScript
 
         //	Change Fieldview
         //	mSV: mouse Track Value, CFVS: Cam Field View Sensitivity
-        private void CF(float mTV, float CFVS)
+        public virtual void CF(float mTV, float CFVS)
         {
             float maxFV = Max_Field_View;
             float minFV = Min_Field_View;
@@ -646,7 +651,7 @@ namespace GeorgeScript
             }
         }
 
-        public void tryMe()
+        public virtual void tryMe()
         {
             Debug.Log("Print Print");
         }
@@ -655,7 +660,7 @@ namespace GeorgeScript
         //	out rotateX: rotation X
         private bool transCounterClearor = false;
         private bool inTransitMode = false;
-        private void CAM_DIS_MANAGER(float rMTV, float sMTV, float sens)
+        public virtual void CAM_DIS_MANAGER(float rMTV, float sMTV, float sens)
         {
             float curDis = Vector3.Distance(transform.position, PlayerCam.transform.position);
             float newDisOffset = 0f;
@@ -886,7 +891,7 @@ namespace GeorgeScript
         public float midMouseWheelHit = 2f;
         public float transitWaitTime = 1f;
         private float transisTimer = 0f;
-        private bool TransistCounter(float mMT = 0, bool quit = false)
+        public virtual bool TransistCounter(float mMT = 0, bool quit = false)
         {
             if (quit)
             {
@@ -904,7 +909,7 @@ namespace GeorgeScript
 
         //	move camera center towards player before going back to RPG mode
         // 2019.02.09 add turn towards and position check as well
-        private bool Move_Towards_Player()
+        public virtual bool Move_Towards_Player()
         {
             Vector3 tarPos = new Vector3(Player_Obj.transform.position.x, Player_Obj.transform.position.y + Height_Offset, Player_Obj.transform.position.z);
             // change position to player
@@ -920,7 +925,7 @@ namespace GeorgeScript
 
         //	FPS	Distance and Angle
         //	curDis: current Distance, mouseTV: mouse Track Value apply with time.deltatime
-        private float FPSDaA(float mTV, float curDis)
+        public virtual float FPSDaA(float mTV, float curDis)
         {
             float aa = 0f;
             return aa;
@@ -998,7 +1003,7 @@ namespace GeorgeScript
         */
 
         // Auto change Hight if terrain changes height
-        private void AutoHight()
+        public virtual void AutoHight()
         {
             if (smoHighTarg == Mathf.Infinity)
             {
@@ -1022,7 +1027,7 @@ namespace GeorgeScript
         }
 
         //	Ray From Camera to Center
-        private void RayCamCent(float curDis, out float rayDisOut)
+        public virtual void RayCamCent(float curDis, out float rayDisOut)
         {
             float newRayDis = Mathf.Infinity;
 
@@ -1045,7 +1050,7 @@ namespace GeorgeScript
         }
 
         //	Ray From Center to Camera
-        private void RayCentCam(float curDis, out float rayDisOut)
+        public virtual void RayCentCam(float curDis, out float rayDisOut)
         {
             float newRayDis = Mathf.Infinity;
 
@@ -1072,7 +1077,7 @@ namespace GeorgeScript
 
         //	Auto Change Camera Distance 
         //	rawMTV: raw mid mouse track value, curDis: current Distance
-        private float ACCD(float rawMTV, float curDis)
+        public virtual float ACCD(float rawMTV, float curDis)
         {
             //float rayDis = Mathf.Infinity;
             float rayDis;
@@ -1157,7 +1162,7 @@ namespace GeorgeScript
 
         //	Change Distance From Ray of Player to Camera
         //	disPos: distance Position, curDis:	current Distance
-        private void CDFRoPtC(float disOffset, float curDis)
+        public virtual void CDFRoPtC(float disOffset, float curDis)
         {
 
             //	Method from Unity Manual "Direction and Distance from One Object to Another"
@@ -1168,7 +1173,7 @@ namespace GeorgeScript
         }
 
         //	Camera Look at Center Point
-        private void CLaCP()
+        public virtual void CLaCP()
         {
 
             //	Rotate Camera look at center point
@@ -1178,7 +1183,7 @@ namespace GeorgeScript
         }
 
         //	Initialize camera view and center angle
-        private void camINITIALIZE()
+        public virtual void camINITIALIZE()
         {
 
             //CLaCP ();	//	Camera Look at Center Point
@@ -1186,7 +1191,7 @@ namespace GeorgeScript
         }
 
         //	Smooth mid Mouse Track value
-        private float SMO_MousTrack(float mouseTrackInput)
+        public virtual float SMO_MousTrack(float mouseTrackInput)
         {
             float oldDisOff = smoMousCach;
 
@@ -1203,13 +1208,37 @@ namespace GeorgeScript
         }
 
         // a event method to check if character is moving or not
-        private void CharacterMoveEvent(bool _b)
+        public virtual void CharacterMoveEvent(bool _b)
         {
             charaterIsMovingFlag = _b;
         }
 
+        public virtual void Where_Is_Player()
+        {
+            if (foundPlayer) return;
+
+            followTar = Camera_Follow_Target.Instance;  //2019.05.12 change to search camera_follow_target.cs as player obj
+            if (Player_Obj == null && followTar != null) Player_Obj = followTar.gameObject;
+            //	fouce false going to RTS mode when Player_Obj is null
+            if (Player_Obj == null) followPlayerFlag = followPlayerFlagInternal = false;
+            else followPlayerFlag = followPlayerFlagInternal = true;
+
+            layerMaskPlayer = LayerMask.GetMask("Player");
+            layerMaskCharacterRagdoll = LayerMask.GetMask("CharacterRagdoll");
+            layerMaskHeightAdjust = LayerMask.GetMask("HeightAdjust");
+            //	identify player character is moving or not by reading flag form control script
+            //  2019.02.07 change this script to a simple player controller
+            if (Player_Obj != null && Player_Obj.GetComponent("Player_Controller_RPG") != null)
+            {
+                //charaterIsMovingFlag = Player_Obj.GetComponent<GeorgeScript.Player_Controller_RPG>().characterMovingFlag;
+                PlayerCR = Player_Obj.GetComponent<Player_Controller_RPG>();
+                PlayerCR.CharacterMoveEvent += CharacterMoveEvent;
+            }
+            if (Player_Obj != null && followTar != null) foundPlayer = true;
+        }
+
         //	debug functions, test camera movement by keyboard
-        private void DEBUG()
+        public virtual void DEBUG()
         {
 
             //	Use keyboard to debug if mouse function is not working well

@@ -18,3 +18,7 @@
 - add prefabs for cam and player rpg
 - change customer editor file order to avoid error when building
 - add namespace to cam scrips
+
+>2019.06.04
+- add player controller rpg interface to separate functionality for other script to use 
+- camera_controller.cs now follow camera_follow_target.cs not Player_Controller_RPG.cs
